@@ -7,6 +7,48 @@ namespace svg {
 
     using namespace std::literals;
 
+    std::ostream& operator<<(std::ostream& os, StrokeLineCap linecap) {
+        switch (linecap) {
+        case StrokeLineCap::BUTT:
+            os << "butt";
+            break;
+        case StrokeLineCap::ROUND:
+            os << "round";
+            break;
+        case StrokeLineCap::SQUARE:
+            os << "square";
+            break;
+        default:
+            assert(false);
+        }
+
+        return os;
+    }
+
+    std::ostream& operator<<(std::ostream& os, StrokeLineJoin linejoin) {
+        switch (linejoin) {
+        case StrokeLineJoin::ARCS:
+            os << "arcs";
+            break;
+        case StrokeLineJoin::BEVEL:
+            os << "bevel";
+            break;
+        case StrokeLineJoin::MITER:
+            os << "miter";
+            break;
+        case StrokeLineJoin::MITER_CLIP:
+            os << "miter-clip";
+            break;
+        case StrokeLineJoin::ROUND:
+            os << "round";
+            break;
+        default:
+            assert(false);
+        }
+
+        return os;
+    }
+
     void Object::Render(const RenderContext& context) const {
         context.RenderIndent();
 
@@ -31,7 +73,8 @@ namespace svg {
     void Circle::RenderObject(const RenderContext& context) const {
         auto& out = context.out;
         out << "<circle cx=\""sv << center_.x << "\" cy=\""sv << center_.y << "\" "sv;
-        out << "r=\""sv << radius_ << "\" "sv;
+        out << "r=\""sv << radius_ << "\""sv;
+        RenderAttrs(out);
         out << "/>"sv;
     }
 
@@ -47,14 +90,16 @@ namespace svg {
         bool first = true;
         for (const auto& point : points_) {
             if (!first) {
-                context.out << " ";
+                context.out << " "sv;
             }
             else {
                 first = false;
             }
-            context.out << point.x << "," << point.y;
+            context.out << point.x << ","sv << point.y;
         }
-        context.out << "\" />";
+        context.out << "\""sv;
+        RenderAttrs(context.out);
+        context.out << "/>"sv;
     }
 
 
@@ -98,15 +143,17 @@ namespace svg {
         context.out << "<text "
             << "x=\"" << pos_.x << "\" " << "y=\"" << pos_.y << "\" "
             << "dx=\"" << offset_.x << "\" " << "dy=\"" << offset_.y << "\" "
-            << "font-size=\"" << size_ << "\" ";
+            << "font-size=\"" << size_ << "\"";
 
         if (!font_family_.empty()) {
-            context.out << "font-family=\"" << font_family_ << "\" ";
+            context.out << " font-family=\"" << font_family_ << "\"";
         }
         
         if (!font_weight_.empty()) {
-            context.out << "font-weight=\"" << font_weight_ << "\"";
+            context.out << " font-weight=\"" << font_weight_ << "\"";
         }
+
+        RenderAttrs(context.out);
 
         context.out << ">";
         for (const char& c : data_) {
@@ -150,7 +197,6 @@ namespace svg {
         }
         out << "</svg>";
     }
-        
 
 }  // namespace svg
 
@@ -193,7 +239,7 @@ Star::Star(svg::Point center, double outer_rad, double inner_rad, int num_rays)
 {}
 
 void Star::Draw(svg::ObjectContainer& container) const {
-    container.Add(CreateStar(center_, outer_rad_, inner_rad_, num_rays_));
+    container.Add(CreateStar(center_, outer_rad_, inner_rad_, num_rays_).SetFillColor("red").SetStrokeColor("black"));
 }
 
 Snowman::Snowman(svg::Point head_center, double head_radius)
@@ -202,9 +248,9 @@ Snowman::Snowman(svg::Point head_center, double head_radius)
 {}
 
 void Snowman::Draw(svg::ObjectContainer& container) const {
-    container.Add(svg::Circle().SetCenter({ head_center_.x, head_center_.y + 5.0 * head_radius_ }).SetRadius(2.0 * head_radius_));
-    container.Add(svg::Circle().SetCenter({ head_center_.x, head_center_.y + 2.0 * head_radius_ }).SetRadius(1.5 * head_radius_));
-    container.Add(svg::Circle().SetCenter(head_center_).SetRadius(head_radius_));
+    container.Add(svg::Circle().SetCenter({ head_center_.x, head_center_.y + 5.0 * head_radius_ }).SetRadius(2.0 * head_radius_).SetFillColor("rgb(240,240,240)").SetStrokeColor("black"));
+    container.Add(svg::Circle().SetCenter({ head_center_.x, head_center_.y + 2.0 * head_radius_ }).SetRadius(1.5 * head_radius_).SetFillColor("rgb(240,240,240)").SetStrokeColor("black"));
+    container.Add(svg::Circle().SetCenter(head_center_).SetRadius(head_radius_).SetFillColor("rgb(240,240,240)").SetStrokeColor("black"));
 }
 
 } // namespace shapes 
