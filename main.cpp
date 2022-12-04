@@ -2,6 +2,7 @@
 #include "svg.h"
 
 #include <cmath>
+#include <vector>
 
 using namespace std::literals;
 using namespace svg;
@@ -12,6 +13,7 @@ using namespace svg;
 */
 namespace {
 
+/*
 Polyline CreateStar(Point center, double outer_rad, double inner_rad, int num_rays) {
     Polyline polyline;
     for (int i = 0; i <= num_rays; ++i) {
@@ -25,8 +27,10 @@ Polyline CreateStar(Point center, double outer_rad, double inner_rad, int num_ra
     }
     return polyline;
 }
+*/
 
 // ¬ыводит приветствие, круг и звезду
+/*
 void DrawPicture() {
     Document doc;
     doc.Add(Circle().SetCenter({20, 20}).SetRadius(10));
@@ -40,6 +44,7 @@ void DrawPicture() {
     doc.Add(CreateStar({20, 50}, 10, 5, 5));
     doc.Render(std::cout);
 }
+*/
 
 
 /*
@@ -58,7 +63,7 @@ Polyline CreateStar(Point center, double outer_rad, double inner_rad, int num_ra
     return polyline;
 }
 */
-
+/*
 void DrawGreeting() {
     Document doc;
     doc.Add(Circle().SetCenter({ 20, 20 }).SetRadius(10));
@@ -72,6 +77,7 @@ void DrawGreeting() {
     doc.Add(CreateStar({ 20, 50 }, 10, 5, 5));
     doc.Render(std::cout);
 }
+*/
 
 
 
@@ -87,6 +93,45 @@ void DrawGreeting() {
 
 */
 
+
+template <typename DrawableIterator>
+void DrawPicture(DrawableIterator begin, DrawableIterator end, svg::ObjectContainer& target) {
+    for (auto it = begin; it != end; ++it) {
+        (*it)->Draw(target);
+    }
+}
+
+template <typename Container>
+void DrawPicture(const Container& container, svg::ObjectContainer& target) {
+    using namespace std;
+    DrawPicture(begin(container), end(container), target);
+}
+
+static void DrawNicePicture() {
+    using namespace svg;
+    using namespace shapes;
+    using namespace std;
+
+    vector<unique_ptr<svg::Drawable>> picture;
+
+    picture.emplace_back(make_unique<Triangle>(Point{ 100, 20 }, Point{ 120, 50 }, Point{ 80, 40 }));
+    // 5-лучева€ звезда с центром {50, 20}, длиной лучей 10 и внутренним радиусом 4
+    picture.emplace_back(make_unique<Star>(Point{ 50.0, 20.0 }, 10.0, 4.0, 5));
+    // —неговик с "головой" радиусом 10, имеющей центр в точке {30, 20}
+    picture.emplace_back(make_unique<Snowman>(Point{ 30, 20 }, 10.0));
+
+    svg::Document doc;
+    // “ак как документ реализует интерфейс ObjectContainer,
+    // его можно передать в DrawPicture в качестве цели дл€ рисовани€
+    DrawPicture(picture, doc);
+
+    // ¬ыводим полученный документ в stdout
+    doc.Render(cout);
+}
+
+
+
+
 int main() {
     /*
        Ёто пример дл€ иллюстрации работы класса Circle, данного в заготовке решени€.
@@ -97,7 +142,8 @@ int main() {
        doc.Add(Circle().SetCenter({20, 20}).SetRadius(10));
        doc.Render(std::cout);
     */
-    DrawGreeting();
+    DrawNicePicture();
+    // DrawGreeting();
     // std::cout << "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"sv << std::endl;
     // std::cout << "<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">"sv << std::endl;
 

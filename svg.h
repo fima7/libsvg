@@ -65,6 +65,34 @@ namespace svg {
     };
 
     /*
+        Интерфейс для доступа к контейнеру SVG-объектов.
+        Через этот интерфейс Drawable-объекты могут визуализировать себя, добавляя в контейнер SVG-примитивы.
+        svg::Document — пока единственный класс библиотеки, реализующий интерфейс ObjectContainer
+    */
+    class ObjectContainer {
+    public:
+        template <typename ObjectType>
+        void Add(ObjectType obj) {
+            AddPtr(std::make_unique<ObjectType>(std::move(obj)));
+        }
+        virtual void AddPtr(std::unique_ptr<Object>&& obj) = 0;
+    protected:
+        ~ObjectContainer() = default;
+    };
+
+    /*
+        Унифицирует работу с объектами, которые можно нарисовать, подключив SVG-библиотеку.
+        Для этого в нём есть метод Draw, принимающий ссылку на интерфейс ObjectContainer.
+    */
+    struct Drawable {
+        virtual void Draw(ObjectContainer& container) const = 0;
+        virtual ~Drawable() = default;
+    };
+
+
+  
+
+    /*
      * Класс Circle моделирует элемент <circle> для отображения круга
      * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
      */
@@ -138,7 +166,7 @@ namespace svg {
 
     };
 
-    class Document {
+    class Document : public ObjectContainer {
     public:
         /*
          Метод Add добавляет в svg-документ любой объект-наследник svg::Object.
@@ -146,13 +174,9 @@ namespace svg {
          Document doc;
          doc.Add(Circle().SetCenter({20, 30}).SetRadius(15));
         */
-        template <typename ObjectType>
-        void Add(ObjectType obj) {
-            objects_.emplace_back(std::make_unique<ObjectType>(std::move(obj)));
-        }
 
         // Добавляет в svg-документ объект-наследник svg::Object
-        void AddPtr(std::unique_ptr<Object>&& obj);
+        void AddPtr(std::unique_ptr<Object>&& obj) override;
 
         // Выводит в ostream svg-представление документа
         void Render(std::ostream& out) const;
@@ -163,3 +187,36 @@ namespace svg {
     };
 
 }  // namespace svg
+
+namespace shapes {
+    class Triangle : public svg::Drawable {
+    public:
+        Triangle(svg::Point p1, svg::Point p2, svg::Point p3);
+        void Draw(svg::ObjectContainer& container) const override;
+    private:
+        svg::Point p1_, p2_, p3_;
+    };
+
+    class Star : public svg::Drawable { 
+    public:
+        Star(svg::Point center, double outer_rad, double inner_rad, int num_rays);
+        void Draw(svg::ObjectContainer& container) const override;
+    private:
+        svg::Point center_;
+        double outer_rad_ = 0.0;
+        double inner_rad_ = 0.0;
+        int num_rays_ = 0;
+    };
+
+    class Snowman : public svg::Drawable {
+    public:
+        Snowman(svg::Point head_center, double head_radius);
+        void Draw(svg::ObjectContainer& container) const override;
+    private:
+        svg::Point head_center_;
+        double head_radius_ = 0.0;
+
+    };
+
+} // namespace shapes 
+
