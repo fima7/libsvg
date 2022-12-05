@@ -7,6 +7,36 @@ namespace svg {
 
     using namespace std::literals;
 
+    static void PrintColor(std::ostream& os, std::monostate) {
+        os << "none";
+    }
+
+    static void PrintColor(std::ostream& os, const std::string& name) {
+        os << name;
+    }
+
+    static void PrintColor(std::ostream& os, Rgb rgb) {
+        os << "rgb(" 
+            << static_cast<uint32_t>(rgb.red) << "," 
+            << static_cast<uint32_t>(rgb.green) << ","
+            << static_cast<uint32_t>(rgb.blue) 
+            << ")";
+    }
+
+    static void PrintColor(std::ostream& os, Rgba rgba) {
+        os << "rgba(" 
+            << static_cast<uint32_t>(rgba.red) << "," 
+            << static_cast<uint32_t>(rgba.green) << "," 
+            << static_cast<uint32_t>(rgba.blue) << "," 
+            << rgba.opacity 
+            << ")";
+    }
+
+    std::ostream& operator<<(std::ostream& os, Color color) {
+        std::visit([&os](auto value) { PrintColor(os, value); }, color);
+        return os;
+    }
+
     std::ostream& operator<<(std::ostream& os, StrokeLineCap linecap) {
         switch (linecap) {
         case StrokeLineCap::BUTT:
@@ -248,9 +278,9 @@ Snowman::Snowman(svg::Point head_center, double head_radius)
 {}
 
 void Snowman::Draw(svg::ObjectContainer& container) const {
-    container.Add(svg::Circle().SetCenter({ head_center_.x, head_center_.y + 5.0 * head_radius_ }).SetRadius(2.0 * head_radius_).SetFillColor("rgb(240,240,240)").SetStrokeColor("black"));
-    container.Add(svg::Circle().SetCenter({ head_center_.x, head_center_.y + 2.0 * head_radius_ }).SetRadius(1.5 * head_radius_).SetFillColor("rgb(240,240,240)").SetStrokeColor("black"));
-    container.Add(svg::Circle().SetCenter(head_center_).SetRadius(head_radius_).SetFillColor("rgb(240,240,240)").SetStrokeColor("black"));
+    container.Add(svg::Circle().SetCenter({ head_center_.x, head_center_.y + 5.0 * head_radius_ }).SetRadius(2.0 * head_radius_).SetFillColor(svg::Rgb(240,240,240)).SetStrokeColor("black"));
+    container.Add(svg::Circle().SetCenter({ head_center_.x, head_center_.y + 2.0 * head_radius_ }).SetRadius(1.5 * head_radius_).SetFillColor(svg::Rgb(240,240,240)).SetStrokeColor("black"));
+    container.Add(svg::Circle().SetCenter(head_center_).SetRadius(head_radius_).SetFillColor(svg::Rgb(240,240,240)).SetStrokeColor("black"));
 }
 
 } // namespace shapes 

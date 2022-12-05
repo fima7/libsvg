@@ -7,6 +7,7 @@
 #include <string>
 #include <list>
 #include <optional>
+#include <variant>
 
 namespace svg {
 
@@ -91,7 +92,29 @@ namespace svg {
     };
 
 
-    using Color = std::string;
+    struct Rgb {
+        Rgb(uint8_t r = 0, uint8_t g = 0, uint8_t b = 0)
+            : red(r)
+            , green(g)
+            , blue(b)
+        {}
+        uint8_t red;
+        uint8_t green;
+        uint8_t blue;
+    };
+
+    struct Rgba : Rgb {
+        Rgba(uint8_t r = 0, uint8_t g = 0, uint8_t b = 0, double op = 1.0)
+            : Rgb(r, g, b)
+            , opacity(op)
+        {}
+        double opacity;
+    };
+
+    using Color = std::variant<std::monostate, std::string, Rgb, Rgba>;
+
+    std::ostream& operator<<(std::ostream& os, Color color);
+
 
     // ќбъ€вив в заголовочном файле константу со спецификатором inline,
     // мы сделаем так, что она будет одной на все единицы трансл€ции,
